@@ -100,10 +100,35 @@ Later:    Split into microservices ONLY if needed
 
 ### Week 2: Menu Management API
 
-- [ ] CRUD for categories
-- [ ] CRUD for menu items
-- [ ] Seed data (sample menu)
-- [ ] Test with Postman
+#### Phase 1: Category Domain + Repository (Day 1)
+- [ ] Create `internal/domain/category.go` — domain model
+- [ ] Create `internal/dto/category_dto.go` — request/response DTOs
+- [ ] Create `internal/repository/interfaces.go` — repository port (interface)
+- [ ] Create `internal/repository/category_repo.go` — PostgreSQL implementation
+
+#### Phase 2: Category Service + Handler (Day 2)
+- [ ] Create `internal/service/category_service.go` — business logic
+- [ ] Create `internal/handler/category_handler.go` — HTTP handlers
+- [ ] Wire routes in `internal/router/router.go`
+- [ ] Test CRUD with Postman (Create, Read, Update, Delete categories)
+
+#### Phase 3: Menu Item Domain + Repository (Day 3)
+- [ ] Create `internal/domain/menu_item.go` — domain model
+- [ ] Create `internal/dto/menu_item_dto.go` — request/response DTOs
+- [ ] Create `internal/repository/menu_item_repo.go` — PostgreSQL implementation
+
+#### Phase 4: Menu Item Service + Handler (Day 4)
+- [ ] Create `internal/service/menu_item_service.go` — business logic
+- [ ] Create `internal/handler/menu_item_handler.go` — HTTP handlers
+- [ ] Wire routes in `internal/router/router.go`
+- [ ] Test CRUD with Postman (Create, Read, Update, Delete menu items)
+- [ ] Test filtering menu items by category
+
+#### Phase 5: Seed Data + Verify + Commit (Day 5)
+- [ ] Create seed SQL script (sample categories + menu items)
+- [ ] Run seed data
+- [ ] Verify all endpoints with Postman
+- [ ] Commit to Git: `feat: complete week 2 - menu management API`
 
 ### Week 3: Order Management API
 
