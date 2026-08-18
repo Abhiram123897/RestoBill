@@ -26,3 +26,25 @@ type MenuItemRepository interface {
 	UpdateAvailability(ctx context.Context, id string, isAvailable bool) (*domain.MenuItem, *errs.AppError)
 	Delete(ctx context.Context, id string) *errs.AppError
 }
+
+// RestaurantTableRepository defines the contract for restaurant table database operations
+type RestaurantTableRepository interface {
+	Create(ctx context.Context, table *domain.RestaurantTable) (*domain.RestaurantTable, *errs.AppError)
+	GetAll(ctx context.Context) ([]domain.RestaurantTable, *errs.AppError)
+	GetByID(ctx context.Context, id string) (*domain.RestaurantTable, *errs.AppError)
+	Update(ctx context.Context, table *domain.RestaurantTable) (*domain.RestaurantTable, *errs.AppError)
+	UpdateStatus(ctx context.Context, id string, status string) (*domain.RestaurantTable, *errs.AppError)
+	Delete(ctx context.Context, id string) *errs.AppError
+}
+
+// OrderRepository defines the contract for order database operations
+type OrderRepository interface {
+	Create(ctx context.Context, order *domain.Order) (*domain.Order, *errs.AppError)
+	GetAll(ctx context.Context, status string, orderType string) ([]domain.Order, *errs.AppError)
+	GetByID(ctx context.Context, id string) (*domain.Order, *errs.AppError)
+	GetActiveOrderByTableID(ctx context.Context, tableID string) (*domain.Order, *errs.AppError)
+	UpdateStatus(ctx context.Context, id string, status string) (*domain.Order, *errs.AppError)
+	AddItem(ctx context.Context, item *domain.OrderItem) (*domain.OrderItem, *errs.AppError)
+	GetItemsByOrderID(ctx context.Context, orderID string) ([]domain.OrderItem, *errs.AppError)
+	RemoveItem(ctx context.Context, orderID string, itemID string) *errs.AppError
+}

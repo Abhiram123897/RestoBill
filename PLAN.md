@@ -132,10 +132,38 @@ Later:    Split into microservices ONLY if needed
 
 ### Week 3: Order Management API
 
-- [ ] Create order (select table, add items)
-- [ ] Update order (add/remove items)
-- [ ] Order status flow
-- [ ] KOT (Kitchen Order Ticket) generation
+#### Phase 1: Restaurant Table Domain + Repository (Day 1)
+- [ ] Create `internal/domain/restaurant_table.go` — domain model
+- [ ] Create `internal/dto/restaurant_table_dto.go` — request/response DTOs
+- [ ] Add `RestaurantTableRepository` interface to `interfaces.go`
+- [ ] Create `internal/repository/restaurant_table_repo.go` — PostgreSQL implementation
+- [ ] Create `internal/service/restaurant_table_service.go` — business logic
+- [ ] Create `internal/handler/restaurant_table_handler.go` — HTTP handlers
+- [ ] Wire routes and test CRUD + status update with Postman
+
+#### Phase 2: Order Domain + Repository (Day 2)
+- [ ] Create `internal/domain/order.go` — domain model (Order + OrderItem)
+- [ ] Create `internal/dto/order_dto.go` — request/response DTOs
+- [ ] Add `OrderRepository` interface to `interfaces.go`
+- [ ] Create `internal/repository/order_repo.go` — PostgreSQL implementation
+
+#### Phase 3: Order Service + Handler (Day 3)
+- [ ] Create `internal/service/order_service.go` — business logic (create order, add items, update status)
+- [ ] Create `internal/handler/order_handler.go` — HTTP handlers
+- [ ] Wire routes in router
+- [ ] Test create order + add items with Postman
+
+#### Phase 4: Order Status Flow + Item Management (Day 4)
+- [ ] Implement order status transitions (open → served → billed → paid)
+- [ ] Add/remove items from an existing order
+- [ ] Update table status when order is created/completed
+- [ ] Test full order lifecycle with Postman
+
+#### Phase 5: Verify + Commit (Day 5)
+- [ ] Test all order endpoints with Postman
+- [ ] Verify table status changes correctly
+- [ ] Update PROGRESS.md
+- [ ] Commit to Git: `feat: complete week 3 - order management API`
 
 ### Week 4: Billing & Payments API
 

@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-Restaurant billing system built with Go (Gin), PostgreSQL, following BlueDrop's clean architecture and Tharsis's PostgreSQL error handling patterns.
+Restaurant billing system built with Go (Gin) and PostgreSQL, following clean architecture patterns with domain/dto/ports/service/handler layering.
 
 **Repository:** https://github.com/Abhiram123897/RestoBill
 
@@ -34,11 +34,11 @@ Restaurant billing system built with Go (Gin), PostgreSQL, following BlueDrop's 
 - All tables verified in pgAdmin
 
 ### Phase 4: Server + DB Connection ✅
-- `internal/logger/logger.go` — Zap structured logging (BlueDrop pattern)
-- `internal/errs/errors.go` — AppError with typed codes (BlueDrop pattern)
-- `internal/db/db.go` — pgxpool connection + PostgreSQL error helpers (Tharsis pattern)
+- `internal/logger/logger.go` — Zap structured logging
+- `internal/errs/errors.go` — AppError with typed codes
+- `internal/db/db.go` — pgxpool connection + PostgreSQL error helpers
 - `internal/handler/health_handler.go` — Health endpoint pings DB
-- `cmd/server/main.go` — Graceful shutdown (BlueDrop pattern)
+- `cmd/server/main.go` — Graceful shutdown
 - Health endpoint tested: `GET /api/v1/health` → `{"status":"ok","database":"connected"}`
 
 ### Phase 5: Verify & Commit ✅
@@ -53,7 +53,7 @@ Restaurant billing system built with Go (Gin), PostgreSQL, following BlueDrop's 
 ### Phase 1: Category Domain + Repository ✅
 - `internal/domain/category.go` — Domain model
 - `internal/dto/category_dto.go` — Request/Response DTOs
-- `internal/repository/interfaces.go` — Repository interfaces (BlueDrop ports pattern)
+- `internal/repository/interfaces.go` — Repository interfaces (port pattern)
 - `internal/repository/category_repo.go` — PostgreSQL implementation
 
 ### Phase 2: Category Service + Handler + Routes ✅
@@ -79,6 +79,42 @@ Restaurant billing system built with Go (Gin), PostgreSQL, following BlueDrop's 
   - `009_add_case_insensitive_category_name` — Case-insensitive unique names
   - `010_add_unique_menu_item_per_category` — Unique item name per category
 - All endpoints verified
+
+---
+
+## Week 3: Order Management API ✅
+
+### Phase 1: Restaurant Tables API ✅
+- `internal/domain/restaurant_table.go` — Domain model
+- `internal/dto/restaurant_table_dto.go` — Request/Response DTOs
+- `internal/repository/restaurant_table_repo.go` — PostgreSQL implementation
+- `internal/service/restaurant_table_service.go` — Business logic with status validation
+- `internal/handler/restaurant_table_handler.go` — HTTP handlers
+- All CRUD + status update endpoints tested via Postman
+
+### Phase 2: Order Domain + Repository ✅
+- `internal/domain/order.go` — Order + OrderItem domain models
+- `internal/dto/order_dto.go` — Request/Response DTOs
+- `internal/repository/order_repo.go` — PostgreSQL implementation with active order check
+
+### Phase 3: Order Service + Handler + Routes ✅
+- `internal/service/order_service.go` — Business logic:
+  - Order type validation (dine_in requires table, takeaway/delivery no table)
+  - Status transitions (open → served/billed/paid, can't go backward)
+  - Price snapshot when adding items
+  - Menu item availability check
+  - Active order per table check (prevents duplicate orders on same table)
+- `internal/handler/order_handler.go` — HTTP handlers with UUID + quantity validation
+- Order filtering by status and order_type (`?status=open&order_type=dine_in`)
+
+### Phase 4: Table Status Sync ✅
+- Table auto-set to "occupied" when dine-in order created
+- Table auto-set to "available" when order marked as "paid"
+- No manual table status changes needed by waiter
+
+### Phase 5: Verify + Commit ✅
+- All order endpoints verified
+- Edge cases tested (invalid status transitions, quantity validation, duplicate table orders)
 
 ---
 
@@ -109,9 +145,31 @@ Restaurant billing system built with Go (Gin), PostgreSQL, following BlueDrop's 
 | PATCH | `/api/v1/menu-items/:id/availability` | Toggle availability |
 | DELETE | `/api/v1/menu-items/:id` | Delete menu item |
 
+### Restaurant Tables
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/v1/tables` | Create table |
+| GET | `/api/v1/tables` | List all tables |
+| GET | `/api/v1/tables/:id` | Get table by ID |
+| PUT | `/api/v1/tables/:id` | Update table |
+| PATCH | `/api/v1/tables/:id/status` | Update table status |
+| DELETE | `/api/v1/tables/:id` | Delete table |
+
+### Orders
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/v1/orders` | Create order |
+| GET | `/api/v1/orders` | List all orders |
+| GET | `/api/v1/orders?status=open` | Filter by status |
+| GET | `/api/v1/orders?order_type=dine_in` | Filter by type |
+| GET | `/api/v1/orders/:id` | Get order with items |
+| PATCH | `/api/v1/orders/:id/status` | Update order status |
+| POST | `/api/v1/orders/:id/items` | Add item to order |
+| DELETE | `/api/v1/orders/:id/items/:itemId` | Remove item from order |
+
 ---
 
-## Architecture (BlueDrop Pattern)
+## Architecture
 
 ```
 cmd/server/main.go          → Entry point + graceful shutdown
@@ -123,9 +181,11 @@ internal/
 ├── domain/                  → Domain models (internal)
 ├── dto/                     → Request/Response objects (API-facing)
 ├── repository/
-│   ├── interfaces.go        → Port interfaces (BlueDrop pattern)
+│   ├── interfaces.go        → Port interfaces
 │   ├── category_repo.go     → PostgreSQL implementation
-│   └── menu_item_repo.go    → PostgreSQL implementation
+│   ├── menu_item_repo.go    → PostgreSQL implementation
+│   ├── restaurant_table_repo.go
+│   └── order_repo.go
 ├── service/                 → Business logic layer
 ├── handler/                 → HTTP handlers (Gin)
 ├── router/                  → Route wiring
@@ -136,18 +196,18 @@ internal/
 
 ## Patterns Adopted
 
-| Pattern | Source | Used In |
-|---------|--------|---------|
-| Domain/DTO separation | BlueDrop | domain/, dto/ |
-| Port interfaces (repos) | BlueDrop | repository/interfaces.go |
-| Service interface + struct | BlueDrop | service/ |
-| Handler struct holds service | BlueDrop | handler/ |
-| `*errs.AppError` return type | BlueDrop | All layers |
-| Error pass-through (repo→service→handler) | BlueDrop | service/ |
-| `AsPgError` + `pgerrcode` | Tharsis | db/db.go, repository/ |
-| UUID validation in handler | Tharsis | handler/ |
-| Zap structured logger | BlueDrop | logger/ |
-| Graceful shutdown | BlueDrop | main.go |
+| Pattern | Used In |
+|---------|---------|
+| Domain/DTO separation | domain/, dto/ |
+| Port interfaces (repos) | repository/interfaces.go |
+| Service interface + struct | service/ |
+| Handler struct holds service | handler/ |
+| `*errs.AppError` return type | All layers |
+| Error pass-through (repo→service→handler) | service/ |
+| `AsPgError` + `pgerrcode` for PG errors | db/db.go, repository/ |
+| UUID validation in handler | handler/ |
+| Zap structured logger | logger/ |
+| Graceful shutdown | main.go |
 
 ---
 
@@ -155,7 +215,7 @@ internal/
 
 | Layer | Technology |
 |-------|-----------|
-| Language | Go 1.25 |
+| Language | Go 1.25+ |
 | Framework | Gin |
 | Database | PostgreSQL 16 |
 | DB Driver | pgx/v5 |
@@ -166,9 +226,10 @@ internal/
 
 ---
 
-## Next: Week 3 — Order Management API
+## Next: Week 4 — Billing & Payments API
 
-- Create order (select table, add items)
-- Update order (add/remove items)
-- Order status flow (open → served → billed → paid)
-- KOT (Kitchen Order Ticket) generation
+- Generate bill from order
+- Tax calculation
+- Discount application
+- Payment recording
+- Bill finalization
