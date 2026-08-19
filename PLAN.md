@@ -167,11 +167,41 @@ Later:    Split into microservices ONLY if needed
 
 ### Week 4: Billing & Payments API
 
-- [ ] Generate bill from order
-- [ ] Tax calculation
-- [ ] Discount application
-- [ ] Payment recording
-- [ ] Bill finalization
+#### Phase 1: Bill Domain + Repository (Day 1)
+- [ ] Create `internal/domain/bill.go` — domain model
+- [ ] Create `internal/dto/bill_dto.go` — request/response DTOs
+- [ ] Add `BillRepository` interface to `interfaces.go`
+- [ ] Create `internal/repository/bill_repo.go` — PostgreSQL implementation
+
+#### Phase 2: Bill Service + Handler (Day 2)
+- [ ] Create `internal/service/bill_service.go` — business logic:
+  - Generate bill from order (calculate subtotal from order items)
+  - Tax calculation (configurable tax rate)
+  - Discount application (amount or percentage)
+  - Bill status management (pending/paid/void)
+- [ ] Create `internal/handler/bill_handler.go` — HTTP handlers
+- [ ] Wire routes and test bill generation with Postman
+
+#### Phase 3: Payment Domain + Repository (Day 3)
+- [ ] Create `internal/domain/payment.go` — domain model
+- [ ] Create `internal/dto/payment_dto.go` — request/response DTOs
+- [ ] Add `PaymentRepository` interface to `interfaces.go`
+- [ ] Create `internal/repository/payment_repo.go` — PostgreSQL implementation
+
+#### Phase 4: Payment Service + Handler (Day 4)
+- [ ] Create `internal/service/payment_service.go` — business logic:
+  - Record payment against a bill
+  - Support multiple payment methods (cash/card/upi)
+  - Auto-mark bill as paid when full amount received
+  - Auto-update order status to paid
+- [ ] Create `internal/handler/payment_handler.go` — HTTP handlers
+- [ ] Wire routes and test full billing flow with Postman
+
+#### Phase 5: Verify + Commit (Day 5)
+- [ ] Test complete flow: order → bill → payment → table freed
+- [ ] Test edge cases (bill for unpaid order, double payment, void bill)
+- [ ] Update PROGRESS.md
+- [ ] Commit to Git: `feat: complete week 4 - billing and payments API`
 
 ### Week 5: Authentication & Authorization
 

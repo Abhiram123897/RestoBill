@@ -57,9 +57,9 @@ func (h *OrderHandler) GetAllOrders(c *gin.Context) {
 
 	// Validate status filter if provided
 	if status != "" {
-		validStatuses := map[string]bool{"open": true, "served": true, "billed": true, "paid": true}
+		validStatuses := map[string]bool{"open": true, "served": true, "billed": true, "paid": true, "cancelled": true}
 		if !validStatuses[status] {
-			c.JSON(http.StatusBadRequest, gin.H{"message": "invalid status filter: must be 'open', 'served', 'billed', or 'paid'", "type": "Bad request"})
+			c.JSON(http.StatusBadRequest, gin.H{"message": "invalid status filter: must be 'open', 'served', 'billed', 'paid', or 'cancelled'", "type": "Bad request"})
 			return
 		}
 	}

@@ -226,10 +226,119 @@ internal/
 
 ---
 
-## Next: Week 4 — Billing & Payments API
+## Week 4: Billing & Payments API ✅
 
-- Generate bill from order
-- Tax calculation
-- Discount application
-- Payment recording
-- Bill finalization
+### Phase 1: Bill Domain + Repository ✅
+- `internal/domain/bill.go` — Domain model
+- `internal/dto/bill_dto.go` — Request/Response DTOs
+- `internal/repository/bill_repo.go` — PostgreSQL implementation
+- Additional migrations:
+  - `011_add_cancelled_status_to_orders` — Added "cancelled" order status
+  - `012_allow_rebilling_after_void` — Partial unique index for rebilling
+
+### Phase 2: Bill Service + Handler ✅
+- `internal/service/bill_service.go` — Business logic:
+  - Auto-calculate subtotal from order items
+  - Tax calculation (configurable rate)
+  - Discount application with reason
+  - Void bill (reverts order to open for correction)
+  - Can't bill already billed/paid orders
+  - Can't bill orders with no items
+  - Regenerate bill after void
+- `internal/handler/bill_handler.go` — HTTP handlers
+
+### Phase 3: Payment Domain + Repository ✅
+- `internal/domain/payment.go` — Domain model
+- `internal/dto/payment_dto.go` — Request/Response DTOs
+- `internal/repository/payment_repo.go` — PostgreSQL implementation
+
+### Phase 4: Payment Service + Handler ✅
+- `internal/service/payment_service.go` — Business logic:
+  - Split payments supported (cash + card + upi)
+  - Can't overpay (validates remaining balance)
+  - Auto-marks bill as "paid" when fully paid
+  - Auto-marks order as "paid"
+  - Auto-frees table (dine-in)
+  - Can't pay void/already paid bills
+- `internal/handler/payment_handler.go` — HTTP handlers
+- Rounded total to nearest integer (no decimals for customer)
+
+### Phase 5: Verify + Commit ✅
+- Full end-to-end flow tested (order → bill → payment → table freed)
+- Split payment tested
+- Error cases tested (overpay, void, invalid method)
+
+---
+
+## API Endpoints (Current)
+
+### Health
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/v1/health` | Health check + DB ping |
+
+### Categories
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/v1/categories` | Create category |
+| GET | `/api/v1/categories` | List all categories |
+| GET | `/api/v1/categories/:id` | Get category by ID |
+| PUT | `/api/v1/categories/:id` | Update category |
+| DELETE | `/api/v1/categories/:id` | Delete category |
+
+### Menu Items
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/v1/menu-items` | Create menu item |
+| GET | `/api/v1/menu-items` | List all menu items |
+| GET | `/api/v1/menu-items?category_id=xxx` | Filter by category |
+| GET | `/api/v1/menu-items/:id` | Get menu item by ID |
+| PUT | `/api/v1/menu-items/:id` | Update menu item |
+| PATCH | `/api/v1/menu-items/:id/availability` | Toggle availability |
+| DELETE | `/api/v1/menu-items/:id` | Delete menu item |
+
+### Restaurant Tables
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/v1/tables` | Create table |
+| GET | `/api/v1/tables` | List all tables |
+| GET | `/api/v1/tables/:id` | Get table by ID |
+| PUT | `/api/v1/tables/:id` | Update table |
+| PATCH | `/api/v1/tables/:id/status` | Update table status |
+| DELETE | `/api/v1/tables/:id` | Delete table |
+
+### Orders
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/v1/orders` | Create order |
+| GET | `/api/v1/orders` | List all orders |
+| GET | `/api/v1/orders?status=open` | Filter by status |
+| GET | `/api/v1/orders?order_type=dine_in` | Filter by type |
+| GET | `/api/v1/orders/:id` | Get order with items |
+| PATCH | `/api/v1/orders/:id/status` | Update order status |
+| POST | `/api/v1/orders/:id/items` | Add item to order |
+| DELETE | `/api/v1/orders/:id/items/:itemId` | Remove item from order |
+
+### Bills
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/v1/bills` | Generate bill for an order |
+| GET | `/api/v1/bills/:id` | Get bill by ID |
+| GET | `/api/v1/orders/:id/bill` | Get bill for an order |
+| PATCH | `/api/v1/bills/:id/discount` | Apply discount |
+| PATCH | `/api/v1/bills/:id/void` | Void (cancel) bill |
+
+### Payments
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/v1/payments` | Record payment |
+| GET | `/api/v1/bills/:id/payments` | Get payments for a bill |
+
+---
+
+## Next: Week 5 — Authentication & Authorization
+
+- JWT-based login
+- User roles (admin, cashier, waiter)
+- Protected routes
+- Role-based access control

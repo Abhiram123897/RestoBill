@@ -48,3 +48,18 @@ type OrderRepository interface {
 	GetItemsByOrderID(ctx context.Context, orderID string) ([]domain.OrderItem, *errs.AppError)
 	RemoveItem(ctx context.Context, orderID string, itemID string) *errs.AppError
 }
+
+// BillRepository defines the contract for bill database operations
+type BillRepository interface {
+	Create(ctx context.Context, bill *domain.Bill) (*domain.Bill, *errs.AppError)
+	GetByID(ctx context.Context, id string) (*domain.Bill, *errs.AppError)
+	GetByOrderID(ctx context.Context, orderID string) (*domain.Bill, *errs.AppError)
+	Update(ctx context.Context, bill *domain.Bill) (*domain.Bill, *errs.AppError)
+	UpdateStatus(ctx context.Context, id string, status string) (*domain.Bill, *errs.AppError)
+}
+
+// PaymentRepository defines the contract for payment database operations
+type PaymentRepository interface {
+	Create(ctx context.Context, payment *domain.Payment) (*domain.Payment, *errs.AppError)
+	GetByBillID(ctx context.Context, billID string) ([]domain.Payment, *errs.AppError)
+}

@@ -19,10 +19,11 @@ var validOrderTypes = map[string]bool{
 
 // valid order statuses
 var validOrderStatuses = map[string]bool{
-	"open":   true,
-	"served": true,
-	"billed": true,
-	"paid":   true,
+	"open":      true,
+	"served":    true,
+	"billed":    true,
+	"paid":      true,
+	"cancelled": true,
 }
 
 // OrderService defines the interface for order business logic
@@ -155,6 +156,14 @@ func (s *orderService) UpdateOrderStatus(ctx context.Context, id string, req *dt
 		}
 	}
 
+	// Auto-free the table when a dine-in order is cancelled
+	if req.Status == "cancelled" && updated.TableID != nil {
+		_, appErr := s.tableRepo.UpdateStatus(ctx, *updated.TableID, "available")
+		if appErr != nil {
+			logger.ErrorF("service: failed to free table: %v", appErr.Message)
+		}
+	}
+
 	return s.buildOrderResponse(ctx, updated)
 }
 
@@ -241,10 +250,11 @@ func (s *orderService) buildOrderResponse(ctx context.Context, order *domain.Ord
 // isValidStatusTransition checks if the status change is allowed
 func isValidStatusTransition(current string, next string) bool {
 	transitions := map[string][]string{
-		"open":   {"served", "billed", "paid"},
-		"served": {"billed", "paid"},
-		"billed": {"paid"},
-		"paid":   {}, // terminal state
+		"open":      {"served", "billed", "paid", "cancelled"},
+		"served":    {"billed", "paid", "cancelled"},
+		"billed":    {"paid"},
+		"paid":      {},          // terminal state
+		"cancelled": {},          // terminal state
 	}
 
 	allowed, exists := transitions[current]

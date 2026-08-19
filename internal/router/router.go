@@ -17,12 +17,16 @@ func Setup(dbClient *db.Client) *gin.Engine {
 	menuItemRepo := repository.NewMenuItemRepository(dbClient.Pool)
 	tableRepo := repository.NewRestaurantTableRepository(dbClient.Pool)
 	orderRepo := repository.NewOrderRepository(dbClient.Pool)
+	billRepo := repository.NewBillRepository(dbClient.Pool)
+	paymentRepo := repository.NewPaymentRepository(dbClient.Pool)
 
 	// ===== Initialize Services =====
 	categoryService := service.NewCategoryService(categoryRepo)
 	menuItemService := service.NewMenuItemService(menuItemRepo)
 	tableService := service.NewRestaurantTableService(tableRepo)
 	orderService := service.NewOrderService(orderRepo, menuItemRepo, tableRepo)
+	billService := service.NewBillService(billRepo, orderRepo)
+	paymentService := service.NewPaymentService(paymentRepo, billRepo, orderRepo, tableRepo)
 
 	// ===== Initialize Handlers =====
 	healthHandler := handler.NewHealthHandler(dbClient)
@@ -30,6 +34,8 @@ func Setup(dbClient *db.Client) *gin.Engine {
 	menuItemHandler := handler.NewMenuItemHandler(menuItemService)
 	tableHandler := handler.NewRestaurantTableHandler(tableService)
 	orderHandler := handler.NewOrderHandler(orderService)
+	billHandler := handler.NewBillHandler(billService)
+	paymentHandler := handler.NewPaymentHandler(paymentService)
 
 	// ===== Routes =====
 	api := r.Group("/api/v1")
@@ -67,6 +73,17 @@ func Setup(dbClient *db.Client) *gin.Engine {
 		api.PATCH("/orders/:id/status", orderHandler.UpdateOrderStatus)
 		api.POST("/orders/:id/items", orderHandler.AddItemToOrder)
 		api.DELETE("/orders/:id/items/:itemId", orderHandler.RemoveItemFromOrder)
+
+		// Bills
+		api.POST("/bills", billHandler.GenerateBill)
+		api.GET("/bills/:id", billHandler.GetBillByID)
+		api.GET("/orders/:id/bill", billHandler.GetBillByOrderID)
+		api.PATCH("/bills/:id/discount", billHandler.ApplyDiscount)
+		api.PATCH("/bills/:id/void", billHandler.VoidBill)
+
+		// Payments
+		api.POST("/payments", paymentHandler.RecordPayment)
+		api.GET("/bills/:id/payments", paymentHandler.GetPaymentsByBillID)
 	}
 
 	return r
