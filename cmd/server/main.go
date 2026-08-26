@@ -28,7 +28,7 @@ func main() {
 	defer dbClient.Close()
 
 	// Setup router
-	r := router.Setup(dbClient)
+	r := router.Setup(dbClient, cfg)
 
 	// Start server
 	srv := &http.Server{

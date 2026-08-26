@@ -336,9 +336,94 @@ internal/
 
 ---
 
-## Next: Week 5 — Authentication & Authorization
+## Week 5: Authentication & Authorization ✅
 
-- JWT-based login
-- User roles (admin, cashier, waiter)
-- Protected routes
-- Role-based access control
+### Phase 1: User Registration + Password Hashing ✅
+- `internal/domain/user.go` — User domain model
+- `internal/dto/auth_dto.go` — Register, Login, AuthResponse DTOs
+- `internal/repository/user_repo.go` — User DB operations (create, get by email/ID, get count)
+- Password hashing with bcrypt
+
+### Phase 2: JWT Login ✅
+- `internal/service/auth_service.go` — Business logic:
+  - Register with bcrypt password hashing
+  - First user auto-becomes admin (bootstrap)
+  - Only admin can register new users after that
+  - Login verifies password → returns JWT token (24h expiry)
+  - Token contains: user_id, email, role, exp
+- `internal/handler/auth_handler.go` — Register, Login, GetMe endpoints
+
+### Phase 3: Auth Middleware ✅
+- `internal/middleware/auth.go` — JWT verification:
+  - Extracts token from `Authorization: Bearer <token>`
+  - Validates signature and expiry
+  - Sets user_id, email, role in context
+  - OptionalAuthMiddleware for register endpoint (first user has no token)
+- Public routes: health, login
+- Protected routes: everything else
+
+### Phase 4: Role-Based Access Control ✅
+- RoleMiddleware checks user's role against allowed roles
+- Permissions:
+  - Admin: everything (manage menu, users, void bills, all operations)
+  - Cashier: create orders, generate bills, record payments, view all
+  - Waiter: create orders, update order/table status, view all
+- Waiter can't delete categories, generate bills, or register users
+- Cashier can't void bills or manage menu
+
+### Phase 5: Verify + Commit ✅
+- Full auth flow tested (first user → admin → registers others)
+- Token-based access verified
+- Role restrictions verified (waiter blocked from admin actions)
+
+---
+
+## API Endpoints (Current)
+
+### Public (no auth required)
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/v1/health` | Health check + DB ping |
+| POST | `/api/v1/auth/login` | Login → returns JWT token |
+| POST | `/api/v1/auth/register` | Register (first user = admin, then admin-only) |
+
+### Protected (token required)
+| Method | Endpoint | Role | Description |
+|--------|----------|------|-------------|
+| GET | `/api/v1/auth/me` | All | Get current user |
+| GET | `/api/v1/categories` | All | List categories |
+| POST | `/api/v1/categories` | Admin | Create category |
+| PUT | `/api/v1/categories/:id` | Admin | Update category |
+| DELETE | `/api/v1/categories/:id` | Admin | Delete category |
+| GET | `/api/v1/menu-items` | All | List menu items |
+| POST | `/api/v1/menu-items` | Admin | Create menu item |
+| PUT | `/api/v1/menu-items/:id` | Admin | Update menu item |
+| PATCH | `/api/v1/menu-items/:id/availability` | Admin | Toggle availability |
+| DELETE | `/api/v1/menu-items/:id` | Admin | Delete menu item |
+| GET | `/api/v1/tables` | All | List tables |
+| PATCH | `/api/v1/tables/:id/status` | All | Update table status |
+| POST | `/api/v1/tables` | Admin | Create table |
+| PUT | `/api/v1/tables/:id` | Admin | Update table |
+| DELETE | `/api/v1/tables/:id` | Admin | Delete table |
+| POST | `/api/v1/orders` | All | Create order |
+| GET | `/api/v1/orders` | All | List orders (filter by status/type) |
+| GET | `/api/v1/orders/:id` | All | Get order with items |
+| PATCH | `/api/v1/orders/:id/status` | All | Update order status |
+| POST | `/api/v1/orders/:id/items` | All | Add item to order |
+| DELETE | `/api/v1/orders/:id/items/:itemId` | All | Remove item from order |
+| POST | `/api/v1/bills` | Admin, Cashier | Generate bill |
+| GET | `/api/v1/bills/:id` | All | Get bill |
+| GET | `/api/v1/orders/:id/bill` | All | Get bill for order |
+| PATCH | `/api/v1/bills/:id/discount` | Admin, Cashier | Apply discount |
+| PATCH | `/api/v1/bills/:id/void` | Admin | Void bill |
+| POST | `/api/v1/payments` | Admin, Cashier | Record payment |
+| GET | `/api/v1/bills/:id/payments` | All | Get payments for bill |
+
+---
+
+## Next: Week 6 — Frontend (React)
+
+- Login page
+- POS screen (order creation)
+- Menu management (admin)
+- Bill view & print

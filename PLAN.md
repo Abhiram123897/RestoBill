@@ -205,10 +205,41 @@ Later:    Split into microservices ONLY if needed
 
 ### Week 5: Authentication & Authorization
 
-- [ ] JWT-based login
-- [ ] User roles (admin, cashier, waiter)
-- [ ] Protected routes
-- [ ] Role-based access control
+#### Phase 1: User Registration + Password Hashing (Day 1)
+- [ ] Create `internal/service/auth_service.go` — register user with bcrypt password
+- [ ] Create `internal/handler/auth_handler.go` — register endpoint
+- [ ] Create `internal/repository/user_repo.go` — user DB operations
+- [ ] Add `UserRepository` interface to `interfaces.go`
+- [ ] Wire routes: `POST /api/v1/auth/register`
+- [ ] Test: create admin, cashier, waiter users
+
+#### Phase 2: JWT Login (Day 2)
+- [ ] Add JWT token generation to auth service (login with email + password)
+- [ ] Return JWT token with user info on successful login
+- [ ] Wire route: `POST /api/v1/auth/login`
+- [ ] Wire route: `GET /api/v1/auth/me` (get current user from token)
+- [ ] Test: login → receive token → use token in subsequent requests
+
+#### Phase 3: Auth Middleware (Day 3)
+- [ ] Create `internal/middleware/auth.go` — JWT verification middleware
+- [ ] Extract user info from token and set in context
+- [ ] Protect all routes (except health, login, register)
+- [ ] Test: requests without token → 401, with valid token → works
+
+#### Phase 4: Role-Based Access Control (Day 4)
+- [ ] Create `internal/middleware/rbac.go` — role checking middleware
+- [ ] Define permissions:
+  - Admin: everything (manage menu, users, view reports, void bills)
+  - Cashier: create orders, generate bills, record payments
+  - Waiter: create orders, update order status, view menu
+- [ ] Apply role restrictions to routes
+- [ ] Test: waiter can't delete categories, cashier can't register users
+
+#### Phase 5: Verify + Commit (Day 5)
+- [ ] Test full auth flow: register → login → use token → role restrictions
+- [ ] Remove hardcoded user UUID from order creation (use token's user)
+- [ ] Update PROGRESS.md
+- [ ] Commit to Git: `feat: complete week 5 - JWT auth with role-based access control`
 
 ### Week 6: Frontend — Core Pages
 

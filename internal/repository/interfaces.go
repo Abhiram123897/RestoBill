@@ -63,3 +63,11 @@ type PaymentRepository interface {
 	Create(ctx context.Context, payment *domain.Payment) (*domain.Payment, *errs.AppError)
 	GetByBillID(ctx context.Context, billID string) ([]domain.Payment, *errs.AppError)
 }
+
+// UserRepository defines the contract for user database operations
+type UserRepository interface {
+	Create(ctx context.Context, user *domain.User) (*domain.User, *errs.AppError)
+	GetByEmail(ctx context.Context, email string) (*domain.User, *errs.AppError)
+	GetByID(ctx context.Context, id string) (*domain.User, *errs.AppError)
+	GetUserCount(ctx context.Context) (int, *errs.AppError)
+}
