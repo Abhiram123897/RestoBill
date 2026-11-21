@@ -213,6 +213,7 @@ internal/
 
 ## Tech Stack
 
+### Backend
 | Layer | Technology |
 |-------|-----------|
 | Language | Go 1.25+ |
@@ -223,6 +224,16 @@ internal/
 | Logger | Zap |
 | UUID | google/uuid |
 | Error Codes | jackc/pgerrcode |
+| Auth | JWT (golang-jwt/jwt/v5) + bcrypt |
+
+### Frontend (Week 6+)
+| Concern | Technology | Purpose |
+|---------|-----------|---------|
+| Framework | React + Vite | Fast, component-based UI |
+| Styling | Tailwind CSS + shadcn/ui | Dense POS tables/forms/modals |
+| Server State | TanStack Query | Caching, refetching, loading/error states for menu/orders/bills/tables |
+| Client State | Context API | Auth/user/role management |
+| HTTP Client | axios (with interceptor) | Auto-attach JWT, handle 401 globally |
 
 ---
 

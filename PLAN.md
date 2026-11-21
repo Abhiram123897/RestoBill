@@ -243,10 +243,39 @@ Later:    Split into microservices ONLY if needed
 
 ### Week 6: Frontend — Core Pages
 
-- [ ] Login page
-- [ ] POS screen (order creation)
-- [ ] Menu management (admin)
-- [ ] Bill view & print
+Built story-by-story, phase-by-phase (UI needs visual verification at each step).
+
+#### Story 1: Project Setup + Login
+- [ ] Phase 1: Scaffold React + Vite + TypeScript in `frontend/`
+- [ ] Phase 2: Install & configure Tailwind CSS + shadcn/ui
+- [ ] Phase 3: Set up axios client with JWT interceptor + TanStack Query provider
+- [ ] Phase 4: Create Auth Context (store token, user, role)
+- [ ] Phase 5: Build Login page → call `/auth/login` → store token → redirect
+
+#### Story 2: Layout + Protected Routes
+- [ ] Phase 1: App shell (navbar/sidebar)
+- [ ] Phase 2: Protected route wrapper (redirect to login if no token)
+- [ ] Phase 3: Role-based navigation (hide admin links from waiter/cashier)
+- [ ] Phase 4: Logout functionality
+
+#### Story 3: Menu Management (Admin)
+- [ ] Phase 1: Categories list page (TanStack Query)
+- [ ] Phase 2: Category create/edit/delete (forms + modals)
+- [ ] Phase 3: Menu items list page (filter by category)
+- [ ] Phase 4: Menu item create/edit/delete + availability toggle
+
+#### Story 4: POS Screen (Order Creation)
+- [ ] Phase 1: Table selection view (grid showing available/occupied)
+- [ ] Phase 2: Menu display (categories + items) for selected order
+- [ ] Phase 3: Cart / order builder (add items, quantity, notes)
+- [ ] Phase 4: Create order → add items → submit
+- [ ] Phase 5: Order status update (served/billed)
+
+#### Story 5: Billing & Payment
+- [ ] Phase 1: Generate bill from order (show subtotal/tax/total)
+- [ ] Phase 2: Apply discount
+- [ ] Phase 3: Record payment (cash/card/upi, split payments)
+- [ ] Phase 4: Receipt view (printable)
 
 ### Week 7: Frontend — Advanced
 
