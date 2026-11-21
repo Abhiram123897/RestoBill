@@ -49,7 +49,7 @@ func (c *Client) Ping(ctx context.Context) error {
 	return c.Pool.Ping(ctx)
 }
 
-// --- PostgreSQL Error Helpers (Tharsis pattern) ---
+// --- PostgreSQL Error Helpers---
 
 // AsPgError extracts a PostgreSQL error from a generic error
 func AsPgError(err error) *pgconn.PgError {

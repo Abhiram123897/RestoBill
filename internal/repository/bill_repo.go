@@ -68,9 +68,11 @@ func (r *billRepo) GetByID(ctx context.Context, id string) (*domain.Bill, *errs.
 	return &b, nil
 }
 
-// GetByOrderID retrieves a bill by order ID
+// GetByOrderID retrieves the current (non-void) bill for an order.
+// An order can have several bills after void-and-rebill, so void bills are skipped
+// and the newest one wins.
 func (r *billRepo) GetByOrderID(ctx context.Context, orderID string) (*domain.Bill, *errs.AppError) {
-	query := `SELECT id, order_id, subtotal, tax_amount, tax_rate, discount_amount, discount_reason, total, status, generated_by, created_at FROM bills WHERE order_id = $1`
+	query := `SELECT id, order_id, subtotal, tax_amount, tax_rate, discount_amount, discount_reason, total, status, generated_by, created_at FROM bills WHERE order_id = $1 AND status != 'void' ORDER BY created_at DESC LIMIT 1`
 
 	var b domain.Bill
 	err := r.pool.QueryRow(ctx, query, orderID).Scan(

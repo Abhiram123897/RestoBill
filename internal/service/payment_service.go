@@ -114,12 +114,16 @@ func (s *paymentService) RecordPayment(ctx context.Context, req *dto.RecordPayme
 			logger.ErrorF("service: failed to mark order as paid: %v", appErr.Message)
 		}
 
-		// Free the table (if dine-in)
+		// Free the table (if dine-in), unless a new party is already seated there.
+		// The old party may pay at the counter after the table was reused.
 		order, _ := s.orderRepo.GetByID(ctx, bill.OrderID)
 		if order != nil && order.TableID != nil {
-			_, appErr = s.tableRepo.UpdateStatus(ctx, *order.TableID, "available")
-			if appErr != nil {
-				logger.ErrorF("service: failed to free table: %v", appErr.Message)
+			activeOrder, _ := s.orderRepo.GetActiveOrderByTableID(ctx, *order.TableID)
+			if activeOrder == nil {
+				_, appErr = s.tableRepo.UpdateStatus(ctx, *order.TableID, "available")
+				if appErr != nil {
+					logger.ErrorF("service: failed to free table: %v", appErr.Message)
+				}
 			}
 		}
 	}

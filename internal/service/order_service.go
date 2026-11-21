@@ -209,9 +209,14 @@ func (s *orderService) AddItemToOrder(ctx context.Context, orderID string, req *
 // RemoveItemFromOrder removes an item from an order
 func (s *orderService) RemoveItemFromOrder(ctx context.Context, orderID string, itemID string) *errs.AppError {
 	// Verify order exists
-	_, appErr := s.orderRepo.GetByID(ctx, orderID)
+	order, appErr := s.orderRepo.GetByID(ctx, orderID)
 	if appErr != nil {
 		return appErr
+	}
+
+	// Once billed, the bill total depends on these items. Void the bill first.
+	if order.Status == "billed" || order.Status == "paid" || order.Status == "cancelled" {
+		return errs.NewBadRequestError("cannot remove items: order is already " + order.Status + ", void the bill first")
 	}
 
 	appErr = s.orderRepo.RemoveItem(ctx, orderID, itemID)
@@ -247,14 +252,17 @@ func (s *orderService) buildOrderResponse(ctx context.Context, order *domain.Ord
 	}, nil
 }
 
-// isValidStatusTransition checks if the status change is allowed
+// isValidStatusTransition checks if a manual status change is allowed.
+// "billed" and "paid" are never set manually: the bill service sets "billed"
+// when a bill is generated, and the payment service sets "paid" when the bill
+// is fully paid. Those services update the repository directly, not this map.
 func isValidStatusTransition(current string, next string) bool {
 	transitions := map[string][]string{
-		"open":      {"served", "billed", "paid", "cancelled"},
-		"served":    {"billed", "paid", "cancelled"},
-		"billed":    {"paid"},
-		"paid":      {},          // terminal state
-		"cancelled": {},          // terminal state
+		"open":      {"served", "cancelled"},
+		"served":    {"cancelled"},
+		"billed":    {},
+		"paid":      {}, // terminal state
+		"cancelled": {}, // terminal state
 	}
 
 	allowed, exists := transitions[current]

@@ -180,6 +180,19 @@ func (s *billService) VoidBill(ctx context.Context, id string) (*dto.BillRespons
 		return nil, errs.NewBadRequestError("bill is already void")
 	}
 
+	// Voiding reopens the order. If a new party has taken the table meanwhile,
+	// reopening would leave two active orders on one table.
+	order, appErr := s.orderRepo.GetByID(ctx, bill.OrderID)
+	if appErr != nil {
+		return nil, appErr
+	}
+	if order.TableID != nil {
+		activeOrder, _ := s.orderRepo.GetActiveOrderByTableID(ctx, *order.TableID)
+		if activeOrder != nil && activeOrder.ID != order.ID {
+			return nil, errs.NewConflictError("cannot void bill: the table already has a new active order")
+		}
+	}
+
 	updated, appErr := s.billRepo.UpdateStatus(ctx, id, "void")
 	if appErr != nil {
 		logger.ErrorF("service: failed to void bill: %v", appErr.Message)

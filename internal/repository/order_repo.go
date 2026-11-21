@@ -108,9 +108,10 @@ func (r *orderRepo) GetByID(ctx context.Context, id string) (*domain.Order, *err
 	return &o, nil
 }
 
-// GetActiveOrderByTableID checks if a table has an active order (open, served, or billed)
+// GetActiveOrderByTableID checks if a table has an order still being served (open or served).
+// A billed order does not block the table: the party may have left and be paying at the counter.
 func (r *orderRepo) GetActiveOrderByTableID(ctx context.Context, tableID string) (*domain.Order, *errs.AppError) {
-	query := `SELECT id, table_id, status, order_type, created_by, created_at, updated_at FROM orders WHERE table_id = $1 AND status IN ('open', 'served', 'billed') LIMIT 1`
+	query := `SELECT id, table_id, status, order_type, created_by, created_at, updated_at FROM orders WHERE table_id = $1 AND status IN ('open', 'served') LIMIT 1`
 
 	var o domain.Order
 	err := r.pool.QueryRow(ctx, query, tableID).Scan(

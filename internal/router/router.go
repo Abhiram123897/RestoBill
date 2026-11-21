@@ -13,6 +13,7 @@ import (
 // Setup creates the Gin engine with all routes
 func Setup(dbClient *db.Client, cfg *config.Config) *gin.Engine {
 	r := gin.Default()
+	r.Use(middleware.CORSMiddleware(cfg.AllowedOrigin))
 
 	// ===== Initialize Repositories =====
 	categoryRepo := repository.NewCategoryRepository(dbClient.Pool)
@@ -69,7 +70,7 @@ func Setup(dbClient *db.Client, cfg *config.Config) *gin.Engine {
 			protected.GET("/menu-items/:id", menuItemHandler.GetMenuItemByID)
 			protected.POST("/menu-items", middleware.RoleMiddleware("admin"), menuItemHandler.CreateMenuItem)
 			protected.PUT("/menu-items/:id", middleware.RoleMiddleware("admin"), menuItemHandler.UpdateMenuItem)
-			protected.PATCH("/menu-items/:id/availability", middleware.RoleMiddleware("admin"), menuItemHandler.UpdateAvailability)
+			protected.PATCH("/menu-items/:id/availability", menuItemHandler.UpdateAvailability)
 			protected.DELETE("/menu-items/:id", middleware.RoleMiddleware("admin"), menuItemHandler.DeleteMenuItem)
 
 			// Restaurant Tables (admin can create/update/delete, all can read/update status)
